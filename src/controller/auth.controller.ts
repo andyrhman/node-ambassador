@@ -77,13 +77,7 @@ export const Login = async (req: Request, res: Response) => {
 
 export const AuthenticatedUser = async (req: Request, res: Response) => {
     try {
-        const jwt = req.cookies["user_session"];
-
-        const payload: any = verify(jwt, process.env.JWT_SECRET_ACCESS);
-
-        const user = await myDataSource.getRepository(User).findOne({ where: { id: payload.id } });
-
-        res.send(user)
+        res.send(req["user"])
     } catch (error) {
         logger.error(error.message);
         return res.status(400).send({ message: "Invalid Request" })
