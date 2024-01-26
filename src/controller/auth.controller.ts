@@ -94,3 +94,45 @@ export const Logout = async (req: Request, res: Response) => {
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
+
+export const UpdateInfo = async (req: Request, res: Response) => {
+    try {
+        const body = req.body;
+        const user = req["user"];
+
+        const repository = myDataSource.getRepository(User);
+
+        const existingUser = await repository.findOne({ where: { id: user.id } });
+
+        if (!existingUser) {
+            return res.status(400).send({ message: 'Invalid Request' });
+        }
+
+        if (body.fullname) {
+            existingUser.fullName = body.fullname;
+        }
+
+        if (body.email && body.email !== existingUser.email) {
+            const existingUserByEmail = await repository.findOne({ where: { email: body.email } });
+            if (existingUserByEmail) {
+                return res.status(400).send({ message: 'Email already exists' });
+            }
+            existingUser.email = body.email;
+        }
+
+        if (body.username && body.username !== existingUser.username) {
+            const existingUserByUsername = await repository.findOne({ where: { username: body.username } });
+            if (existingUserByUsername) {
+                return res.status(400).send({ message: 'Username already exists' });
+            }
+            existingUser.username = body.username;
+        }
+
+        await repository.update(user.id, req.body);
+
+        res.status(202).send(await repository.findOne({ where: { id: user.id } }))
+    } catch (error) {
+        logger.error(error.message);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
