@@ -7,7 +7,7 @@ import { User } from "../entity/user.entity";
 import logger from "../config/logger"
 import myDataSource from "../config/db.config";
 import * as argon2 from 'argon2'
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 
 export const Register = async (req: Request, res: Response) => {
     try {
@@ -20,7 +20,7 @@ export const Register = async (req: Request, res: Response) => {
             return res.status(400).json(formatValidationErrors(validationErrors));
         }
 
-        const { password, ...user } = await myDataSource.getRepository(User).save({
+        const user = await myDataSource.getRepository(User).save({
             fullName: body.fullname,
             username: body.username,
             email: body.email,
@@ -28,10 +28,12 @@ export const Register = async (req: Request, res: Response) => {
             is_ambassador: false
         });
 
+        delete user.password;
+
         res.send(user)
     } catch (error) {
         logger.error(error.message);
-        return res.status(400).send({ test: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" })
     }
 }
 
@@ -43,9 +45,9 @@ export const Login = async (req: Request, res: Response) => {
         let user: User;
 
         if (body.email) {
-            user = await repository.findOne({ where: { email: body.email } });
+            user = await repository.findOne({ where: { email: body.email }, select: ['id', 'password'] });
         } else {
-            user = await repository.findOne({ where: { username: body.username } });
+            user = await repository.findOne({ where: { username: body.username }, select: ['id', 'password'] });
         }
 
         if (!user) {
@@ -69,6 +71,32 @@ export const Login = async (req: Request, res: Response) => {
         res.status(200).send({ message: "Successfully logged in!" });
     } catch (error) {
         logger.error(error.message);
-        return res.status(400).send({ test: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
+
+export const AuthenticatedUser = async (req: Request, res: Response) => {
+    try {
+        const jwt = req.cookies["user_session"];
+
+        const payload: any = verify(jwt, process.env.JWT_SECRET_ACCESS);
+
+        const user = await myDataSource.getRepository(User).findOne({ where: { id: payload.id } });
+
+        res.send(user)
+    } catch (error) {
+        logger.error(error.message);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
+
+export const Logout = async (req: Request, res: Response) => {
+    try {
+        res.clearCookie('user_session');
+
+        res.status(204).send(null)
+    } catch (error) {
+        logger.error(error.message);
+        return res.status(400).send({ message: "Invalid Request" })
     }
 }
