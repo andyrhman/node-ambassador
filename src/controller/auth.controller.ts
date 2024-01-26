@@ -54,7 +54,7 @@ export const Login = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Invalid Credentials" });
         }
 
-        if (!await argon2.hash(user.password, body.password)) {
+        if (!await argon2.verify(user.password, body.password)) {
             return res.status(400).send({ message: "Invalid Credentials" });
         }
 
@@ -130,7 +130,26 @@ export const UpdateInfo = async (req: Request, res: Response) => {
 
         await repository.update(user.id, req.body);
 
-        res.status(202).send(await repository.findOne({ where: { id: user.id } }))
+        res.status(202).send(existingUser)
+    } catch (error) {
+        logger.error(error.message);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
+
+export const UpdatePassword = async (req: Request, res: Response) => {
+    try {
+        const user = req["user"];
+
+        if (await req.body.password !== req.body.confirm_password) {
+            return res.status(400).send({ message: "Password not match" })
+        }
+
+        await myDataSource.getRepository(User).update(user.id, {
+            password: await argon2.hash(req.body.password)
+        });
+
+        res.status(202).send(user)
     } catch (error) {
         logger.error(error.message);
         return res.status(400).send({ message: "Invalid Request" })
