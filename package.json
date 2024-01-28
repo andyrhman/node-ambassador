@@ -5,7 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "chcp 65001 && nodemon src/index.ts",
-    "seed:ambassadors": "chcp 65001 && ts-node src/seeder/ambassador.seeder.ts"
+    "seed:ambassadors": "chcp 65001 && ts-node src/seeder/ambassador.seeder.ts",
+    "seed:products": "chcp 65001 && ts-node src/seeder/product.seeder.ts"
   },
   "repository": {
     "type": "git",
