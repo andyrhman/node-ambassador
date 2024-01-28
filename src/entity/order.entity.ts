@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { OrderItem } from "./order-item.entity";
+import { Link } from "./link.entity";
 
 @Entity('orders')
 export class Order {
@@ -44,6 +45,15 @@ export class Order {
 
     @OneToMany(() => OrderItem, orderItem => orderItem.order)
     order_items: OrderItem[];
+
+    @ManyToOne(() => Link, link => link.orders, {
+        createForeignKeyConstraints: false
+    })
+    @JoinColumn({
+        referencedColumnName: 'code',
+        name: 'code'
+    })
+    links: Link;
 
     get total(): number {
         return this.order_items.reduce((sum, i) => sum + i.admin_revenue, 0);

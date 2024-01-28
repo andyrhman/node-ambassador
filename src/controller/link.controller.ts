@@ -5,7 +5,10 @@ import myDataSource from "../config/db.config";
 
 export const Links = async (req: Request, res: Response) => {
     try {
-        const links = await myDataSource.getRepository(Link).find({ where: { user_id: req.params.id } })
+        const links = await myDataSource.getRepository(Link).find({ 
+            where: { user_id: req.params.id },
+            relations: ['orders', 'orders.order_items']
+        })
 
         res.send(links)
     } catch (error) {

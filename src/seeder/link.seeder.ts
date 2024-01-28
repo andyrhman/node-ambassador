@@ -9,7 +9,7 @@ seederSource.initialize().then(async () => {
 
     const users = await seederSource.getRepository(User).find({});
 
-    for (let i = 0; i < 430; i++) {
+    for (let i = 0; i < 30; i++) {
         await repository.save({
             code: faker.string.alphanumeric(7),
             user_id: users[i % users.length].id,
