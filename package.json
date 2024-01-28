@@ -7,7 +7,8 @@
     "start": "chcp 65001 && nodemon src/index.ts",
     "seed:ambassadors": "chcp 65001 && ts-node src/seeder/ambassador.seeder.ts",
     "seed:products": "chcp 65001 && ts-node src/seeder/product.seeder.ts",
-    "seed:links": "chcp 65001 && ts-node src/seeder/link.seeder.ts"
+    "seed:links": "chcp 65001 && ts-node src/seeder/link.seeder.ts",
+    "seed:orders": "chcp 65001 && ts-node src/seeder/order.seeder.ts"
   },
   "repository": {
     "type": "git",

@@ -4,6 +4,7 @@ import { AuthMiddleware } from "./middleware/auth.middleware";
 import { Ambassadors } from "./controller/user.controller";
 import { CreateProduct, DeleteProduct, GetProduct, Products, UpdateProduct } from "./controller/product.controller";
 import { Links } from "./controller/link.controller";
+import { Orders } from "./controller/order.controller";
 
 const routes = (router: Router) => {
     router.post('/api/admin/register', Register);
@@ -20,6 +21,7 @@ const routes = (router: Router) => {
     router.put('/api/admin/products/:id', AuthMiddleware, UpdateProduct);
     router.delete('/api/admin/products/:id', AuthMiddleware, DeleteProduct);
     router.get('/api/admin/users/:id/links', AuthMiddleware, Links);
+    router.get('/api/admin/orders', AuthMiddleware, Orders);
 }
 
 export default routes;
