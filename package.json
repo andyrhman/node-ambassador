@@ -4,7 +4,8 @@
   "description": "node express api server for node-ambassador",
   "main": "index.ts",
   "scripts": {
-    "start": "chcp 65001 && nodemon src/index.ts"
+    "start": "chcp 65001 && nodemon src/index.ts",
+    "seed:ambassadors": "chcp 65001 && ts-node src/seeder/ambassador.seeder.ts"
   },
   "repository": {
     "type": "git",
