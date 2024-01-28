@@ -25,7 +25,9 @@ export const Register = async (req: Request, res: Response) => {
             username: body.username,
             email: body.email,
             password: await argon2.hash(body.password),
-            is_ambassador: false
+            // ! THIS CODE IS USELESS
+            // ? JUST MAKE IT FALSE WITHOUT USING THE REQUEST ENDPOINT
+            is_ambassador: req.path === '/api/ambassador/register' 
         });
 
         delete user.password;
@@ -45,9 +47,9 @@ export const Login = async (req: Request, res: Response) => {
         let user: User;
 
         if (body.email) {
-            user = await repository.findOne({ where: { email: body.email }, select: ['id', 'password'] });
+            user = await repository.findOne({ where: { email: body.email }, select: ['id', 'password', 'is_ambassador'] });
         } else {
-            user = await repository.findOne({ where: { username: body.username }, select: ['id', 'password'] });
+            user = await repository.findOne({ where: { username: body.username }, select: ['id', 'password', 'is_ambassador'] });
         }
 
         if (!user) {
@@ -58,8 +60,15 @@ export const Login = async (req: Request, res: Response) => {
             return res.status(400).send({ message: "Invalid Credentials" });
         }
 
+        const adminLogin = req.path === '/api/admin/login';
+
+        if (user.is_ambassador && adminLogin) {
+            return res.status(401).send({ message: "Unauthorized" });
+        }
+
         const token = sign({
-            id: user.id
+            id: user.id,
+            scope: adminLogin ? 'admin' : 'ambassador' 
         }, process.env.JWT_SECRET_ACCESS);
 
         res.cookie('user_session', token, {
