@@ -8,6 +8,7 @@ import logger from "../config/logger"
 import myDataSource from "../config/db.config";
 import * as argon2 from 'argon2'
 import { sign, verify } from "jsonwebtoken";
+import { Order } from "../entity/order.entity";
 
 export const Register = async (req: Request, res: Response) => {
     try {
@@ -27,7 +28,7 @@ export const Register = async (req: Request, res: Response) => {
             password: await argon2.hash(body.password),
             // ! THIS CODE IS USELESS
             // ? JUST MAKE IT FALSE WITHOUT USING THE REQUEST ENDPOINT
-            is_ambassador: req.path === '/api/ambassador/register' 
+            is_ambassador: req.path === '/api/ambassador/register'
         });
 
         delete user.password;
@@ -68,7 +69,7 @@ export const Login = async (req: Request, res: Response) => {
 
         const token = sign({
             id: user.id,
-            scope: adminLogin ? 'admin' : 'ambassador' 
+            scope: adminLogin ? 'admin' : 'ambassador'
         }, process.env.JWT_SECRET_ACCESS);
 
         res.cookie('user_session', token, {
@@ -86,7 +87,23 @@ export const Login = async (req: Request, res: Response) => {
 
 export const AuthenticatedUser = async (req: Request, res: Response) => {
     try {
-        res.send(req["user"])
+        const user = req["user"]
+
+        if (req.path === '/api/admin/user') {
+            return res.send(user);
+        }
+
+        const orders = await myDataSource.getRepository(Order).find({
+            where: {
+                user_id: user.id,
+                complete: true
+            },
+            relations: ['order_items']
+        });
+
+        user.revenue = orders.reduce((s, o) => s + o.ambassador_revenue, 0);
+
+        res.send(user);
     } catch (error) {
         logger.error(error.message);
         return res.status(400).send({ message: "Invalid Request" })

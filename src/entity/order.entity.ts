@@ -58,6 +58,10 @@ export class Order {
     get total(): number {
         return this.order_items.reduce((sum, i) => sum + i.admin_revenue, 0);
     }
+
+    get ambassador_revenue(): number {
+        return this.order_items.reduce((sum, i) => sum + i.ambassador_revenue, 0);
+    }
     /* 
     *    get name(): string{
     *        return this.first_name + ' ' + this.last_name;
