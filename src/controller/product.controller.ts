@@ -114,6 +114,22 @@ export const ProductsBackend = async (req: Request, res: Response) => {
             }
         }
 
+        // * Sorting the products
+        let sort: any = req.query.sort;
+        sort = sanitizeHtml(sort);
+        
+        if (sort === 'asc' || sort === 'desc') {
+            products.sort((a, b) => {
+                const diff = a.price - b.price;
+
+                if (diff === 0) return 0;
+
+                const sign = Math.abs(diff) / diff;
+
+                return sort === 'asc' ? -sign : sign;
+            })
+        }
+
         res.send(products)
     } catch (error) {
         logger.error(error);
