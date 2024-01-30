@@ -117,7 +117,7 @@ export const ProductsBackend = async (req: Request, res: Response) => {
         // * Sorting the products
         let sort: any = req.query.sort;
         sort = sanitizeHtml(sort);
-        
+
         if (sort === 'asc' || sort === 'desc') {
             products.sort((a, b) => {
                 const diff = a.price - b.price;
@@ -130,7 +130,19 @@ export const ProductsBackend = async (req: Request, res: Response) => {
             })
         }
 
-        res.send(products)
+        // * Paginating products
+        const page: number = parseInt(req.query.page as any) || 1;
+        const perPage = 9;
+        const total = products.length;
+
+        const data = products.slice((page - 1) * perPage, page * perPage)
+
+        res.send({
+            data,
+            total,
+            page,
+            last_page: Math.ceil(total / perPage)
+        });
     } catch (error) {
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
