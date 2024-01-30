@@ -4,6 +4,7 @@ import logger from "../config/logger";
 import myDataSource from "../config/db.config";
 import { Order } from "../entity/order.entity";
 import { User } from "../entity/user.entity";
+import { client } from "../index";
 
 export const Links = async (req: Request, res: Response) => {
     try {
@@ -75,33 +76,9 @@ export const Stats = async (req: Request, res: Response) => {
 
 export const Rankings = async (req: Request, res: Response) => {
     try {
-        const ambassadors = await myDataSource.getRepository(User).find({
-            where: { is_ambassador: true }
-        });
+        const result = await client.sendCommand(['ZREVRANGEBYSCORE', 'rankings', '+inf', '-inf', 'WITHSCORES']);
 
-        const orderRepository = myDataSource.getRepository(Order);
-
-        res.send(ambassadors.map(async ambassador => {
-        /*
-            * This code has different implementation as in nestjs ambassador
-            * in nestjs we count directly the ambassador revenue in the entity like this
-            ?   get revenue(): number {
-            ?        return this.orders.filter(o => o.complete).reduce((s, o) => s + o.ambassador_revenue, 0)
-            ?   }
-
-            * but for this project we count the revenue inside the controller
-            * use this alternative if you don't want to use the nestjs one
-        */
-            const orders = await orderRepository.find({
-                where: { user_id: ambassador.id, complete: true },
-                relations: ['order_items']
-            });
-
-            return {
-                name: ambassador.fullName,
-                revenue: orders.reduce((s, o) => s + o.ambassador_revenue, 0)
-            }
-        }))
+        res.send(result);
     } catch (error) {
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
