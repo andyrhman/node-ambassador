@@ -93,7 +93,8 @@ export const Rankings = async (req: Request, res: Response) => {
             * use this alternative if you don't want to use the nestjs one
         */
             const orders = await orderRepository.find({
-                where: { user_id: ambassador.id }
+                where: { user_id: ambassador.id, complete: true },
+                relations: ['order_items']
             });
 
             return {
