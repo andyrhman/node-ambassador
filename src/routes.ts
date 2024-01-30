@@ -2,7 +2,7 @@ import { Router } from "express";
 import { AuthenticatedUser, Login, Logout, Register, UpdateInfo, UpdatePassword } from "./controller/auth.controller";
 import { AuthMiddleware } from "./middleware/auth.middleware";
 import { Ambassadors } from "./controller/user.controller";
-import { CreateProduct, DeleteProduct, GetProduct, Products, UpdateProduct } from "./controller/product.controller";
+import { CreateProduct, DeleteProduct, GetProduct, Products, ProductsFrontend, UpdateProduct } from "./controller/product.controller";
 import { Links } from "./controller/link.controller";
 import { Orders } from "./controller/order.controller";
 
@@ -30,6 +30,7 @@ const routes = (router: Router) => {
     router.post('/api/ambassador/logout', AuthMiddleware, Logout);
     router.put('/api/ambassador/users/info', AuthMiddleware, UpdateInfo);
     router.put('/api/ambassador/users/password', AuthMiddleware, UpdatePassword);
+    router.get('/api/ambassador/products/frontend', ProductsFrontend);
 }
 
 export default routes;
