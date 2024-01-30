@@ -33,5 +33,5 @@ export class Link {
         referencedColumnName: 'code',
         name: 'code'
     })
-    orders: Order
+    orders: Order[];
 }
