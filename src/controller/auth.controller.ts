@@ -93,6 +93,16 @@ export const AuthenticatedUser = async (req: Request, res: Response) => {
             return res.send(user);
         }
 
+        /*
+            * This code has different implementation as in nestjs ambassador
+            * in nestjs we count directly the ambassador revenue in the entity like this
+            ?   get revenue(): number {
+            ?        return this.orders.filter(o => o.complete).reduce((s, o) => s + o.ambassador_revenue, 0)
+            ?   }
+
+            * but for this project we count the revenue inside the controller
+            * use this alternative if you don't want to use the nestjs one
+        */
         const orders = await myDataSource.getRepository(Order).find({
             where: {
                 user_id: user.id,
