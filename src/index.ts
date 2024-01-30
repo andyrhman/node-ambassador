@@ -7,8 +7,13 @@ import routes from './routes';
 import cookieParser from 'cookie-parser';
 import myDataSource from './config/db.config'
 import { ValidationMiddleware } from './middleware/validation.middleware';
+import { createClient } from 'redis';
 
-const app = express()
+const app = express();
+
+export const client = createClient({
+    url: 'redis://cache:6379'
+});
 
 app.use(express.json());
 app.use(cookieParser());
@@ -18,7 +23,9 @@ app.use(cors({
     origin: [`${process.env.CORS_ORIGIN}`]
 }));
 
-myDataSource.initialize().then(() => {
+myDataSource.initialize().then(async () => {
+    await client.connect();
+
     routes(app);
 
     logger.info("🗃️ Database has been initialized!");

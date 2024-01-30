@@ -4,11 +4,11 @@
   "description": "node express api server for node-ambassador",
   "main": "index.ts",
   "scripts": {
-    "start": "chcp 65001 && nodemon src/index.ts",
-    "seed:ambassadors": "chcp 65001 && ts-node src/seeder/ambassador.seeder.ts",
-    "seed:products": "chcp 65001 && ts-node src/seeder/product.seeder.ts",
-    "seed:links": "chcp 65001 && ts-node src/seeder/link.seeder.ts",
-    "seed:orders": "chcp 65001 && ts-node src/seeder/order.seeder.ts"
+    "start": "nodemon --legacy-watch src/index.ts",
+    "seed:ambassadors": "ts-node src/seeder/ambassador.seeder.ts",
+    "seed:products": "ts-node src/seeder/product.seeder.ts",
+    "seed:links": "ts-node src/seeder/link.seeder.ts",
+    "seed:orders": "ts-node src/seeder/order.seeder.ts"
   },
   "repository": {
     "type": "git",
@@ -48,6 +48,7 @@
     "mongoose": "^8.1.1",
     "pg": "^8.11.3",
     "pino": "^8.17.2",
+    "redis": "^4.6.12",
     "reflect-metadata": "^0.2.1",
     "sanitize-html": "^2.11.0",
     "typeorm": "^0.3.19"
