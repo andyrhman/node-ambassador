@@ -11,7 +11,7 @@ export const Ambassadors = async (req: Request, res: Response) => {
             }
         }))
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }

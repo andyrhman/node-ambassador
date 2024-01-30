@@ -9,7 +9,7 @@ export const Products = async (req: Request, res: Response) => {
     try {
         res.send(await myDataSource.getRepository(Product).find())
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 
@@ -19,7 +19,7 @@ export const CreateProduct = async (req: Request, res: Response) => {
     try {
         res.send(await myDataSource.getRepository(Product).save(req.body))
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -28,7 +28,7 @@ export const GetProduct = async (req: Request, res: Response) => {
     try {
         res.send(await myDataSource.getRepository(Product).findOne({ where: { id: req.params.id } }))
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -41,7 +41,7 @@ export const UpdateProduct = async (req: Request, res: Response) => {
 
         res.status(202).send(await repository.findOne({ where: { id: req.params.id } }))
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -52,7 +52,7 @@ export const DeleteProduct = async (req: Request, res: Response) => {
 
         res.status(204).send(null);
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -75,7 +75,7 @@ export const ProductsFrontend = async (req: Request, res: Response) => {
 
         res.send(products)
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }

@@ -35,7 +35,7 @@ export const Register = async (req: Request, res: Response) => {
 
         res.send(user)
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -80,7 +80,7 @@ export const Login = async (req: Request, res: Response) => {
 
         res.status(200).send({ message: "Successfully logged in!" });
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -105,7 +105,7 @@ export const AuthenticatedUser = async (req: Request, res: Response) => {
 
         res.send(user);
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -116,7 +116,7 @@ export const Logout = async (req: Request, res: Response) => {
 
         res.status(204).send(null)
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -158,7 +158,7 @@ export const UpdateInfo = async (req: Request, res: Response) => {
 
         res.status(202).send(existingUser)
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
@@ -177,7 +177,7 @@ export const UpdatePassword = async (req: Request, res: Response) => {
 
         res.status(202).send(user)
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }

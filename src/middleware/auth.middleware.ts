@@ -26,7 +26,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: Function
         req["user"] = user
         next();
     } catch (error) {
-        logger.error(error.message);
+        logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
 }
