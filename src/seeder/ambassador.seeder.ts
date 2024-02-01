@@ -1,16 +1,14 @@
-import seederSource from "../config/seeder.comfig";
+import mongoose from "mongoose";
 import logger from "../config/logger";
 import * as argon2 from 'argon2'
 import { fakerID_ID as faker } from "@faker-js/faker";
-import { User } from "../entity/user.entity";
+import { User } from "../models/user.schema";
 
-seederSource.initialize().then(async () => {
-    const repository = seederSource.getRepository(User);
-
+mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
     const password = await argon2.hash("123123");
 
     for (let i = 0; i < 30; i++) {
-        await repository.save({
+        await User.create({
             fullName: faker.person.fullName(),
             username: faker.internet.userName(),
             email: faker.internet.email(),

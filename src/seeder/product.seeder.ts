@@ -1,13 +1,12 @@
-import seederSource from "../config/seeder.comfig";
+import mongoose from "mongoose";
 import logger from "../config/logger";
 import { fakerID_ID as faker } from "@faker-js/faker";
-import { Product } from "../entity/product.entity";
+import { Product } from "../models/product.schema";
 
-seederSource.initialize().then(async () => {
-    const repository = seederSource.getRepository(Product);
+mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
 
     for (let i = 0; i < 30; i++) {
-        await repository.save({
+        await Product.create({
             title: faker.commerce.productName(),
             description: faker.commerce.productDescription(),
             image: faker.image.urlLoremFlickr({ width: 200, height: 200, category: 'food' }),

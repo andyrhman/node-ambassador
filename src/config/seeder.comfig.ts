@@ -1,18 +1,15 @@
-require('dotenv').config();
-import { DataSource } from "typeorm";
+import logger from './logger';
+import mongoose from 'mongoose';
 
-const seederSource = new DataSource({
-    type: "postgres",
-    host: process.env.POSTGRES_HOST,
-    port: parseInt(process.env.POSTGRES_PORT || '5432'),
-    username: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DATABASE,
-    entities: [
-        "src/entity/*.ts"
-    ],
-    logging: false,
-    synchronize: true
-});
+const MongooSeeder = () => {
+    mongoose.connect('mongodb://localhost/node_ambassador')
+        .then(() => logger.info('🗃️ Database has been initialized!'))
+        .catch((err) => logger.error(err));
+    require('../models/user.schema');
+    require('../models/product.schema');
+    require('../models/link.schema');
+    require('../models/order.schema');
+    require('../models/order-item.schema');
+}
 
-export default seederSource;
+export default MongooSeeder;

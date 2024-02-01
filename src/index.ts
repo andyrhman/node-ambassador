@@ -5,9 +5,11 @@ import express from 'express';
 import cors from 'cors';
 import routes from './routes';
 import cookieParser from 'cookie-parser';
-import myDataSource from './config/db.config'
+import MongoConfig from './config/db.config';
 import { ValidationMiddleware } from './middleware/validation.middleware';
 import { createClient } from 'redis';
+
+MongoConfig();
 
 const app = express();
 
@@ -23,15 +25,8 @@ app.use(cors({
     origin: [`${process.env.CORS_ORIGIN}`]
 }));
 
-myDataSource.initialize().then(async () => {
-    await client.connect();
+routes(app);
 
-    routes(app);
-
-    logger.info("🗃️ Database has been initialized!");
-    app.listen(8000, () => {
-        logger.info('👍 Server listening on port 8000');
-    });
-}).catch((err) => {
-    logger.error(err);
+app.listen(8000, () => {
+    logger.info('👍 Server listening on port 8000');
 });

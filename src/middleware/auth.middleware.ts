@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { verify } from "jsonwebtoken";
 import myDataSource from "../config/db.config";
-import { User } from "../entity/user.entity";
+import { User } from "../models/user.schema";
 import logger from "../config/logger";
 
 export const AuthMiddleware = async (req: Request, res: Response, next: Function) => {
