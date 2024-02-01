@@ -3,7 +3,7 @@ import { AuthenticatedUser, Login, Logout, Register, UpdateInfo, UpdatePassword 
 import { AuthMiddleware } from "./middleware/auth.middleware";
 import { Ambassadors } from "./controller/user.controller";
 import { CreateProduct, DeleteProduct, GetProduct, Products, ProductsBackend, ProductsFrontend, UpdateProduct } from "./controller/product.controller";
-import { CreateLink, Links, Rankings, Stats } from "./controller/link.controller";
+import { CreateLink, GetLink, Links, Rankings, Stats } from "./controller/link.controller";
 import { Orders } from "./controller/order.controller";
 
 const routes = (router: Router) => {
@@ -35,6 +35,9 @@ const routes = (router: Router) => {
     router.post('/api/ambassador/links', AuthMiddleware, CreateLink);
     router.get('/api/ambassador/stats', AuthMiddleware, Stats);
     router.get('/api/ambassador/rankings', AuthMiddleware, Rankings);
+
+    // Checkout
+    router.get('/api/checkout/links/:code', GetLink);
 }
 
 export default routes;

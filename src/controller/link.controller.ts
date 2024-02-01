@@ -50,16 +50,16 @@ export const Stats = async (req: Request, res: Response) => {
         });
 
         res.send(links.map(link => {
-        /*
-            * This code has different implementation as in nestjs ambassador
-            * in nestjs we count directly the ambassador revenue in the entity like this
-            ?   get revenue(): number {
-            ?        return this.orders.filter(o => o.complete).reduce((s, o) => s + o.ambassador_revenue, 0)
-            ?   }
-
-            * but for this project we count the revenue inside the controller
-            * use this alternative if you don't want to use the nestjs one
-        */
+            /*
+                * This code has different implementation as in nestjs ambassador
+                * in nestjs we count directly the ambassador revenue in the entity like this
+                ?   get revenue(): number {
+                ?        return this.orders.filter(o => o.complete).reduce((s, o) => s + o.ambassador_revenue, 0)
+                ?   }
+    
+                * but for this project we count the revenue inside the controller
+                * use this alternative if you don't want to use the nestjs one
+            */
             const orders: Order[] = link.orders.filter(o => o.complete)
 
             return {
@@ -104,6 +104,18 @@ export const Rankings = async (req: Request, res: Response) => {
         ?    }, {}));
         
         */
+    } catch (error) {
+        logger.error(error);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
+
+export const GetLink = async (req: Request, res: Response) => {
+    try {
+        res.send(await myDataSource.getRepository(Link).findOne({
+            where: { code: req.params.code },
+            relations: ['user', 'products']
+        }));
     } catch (error) {
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
