@@ -52,6 +52,7 @@
     "redis": "^4.6.12",
     "reflect-metadata": "^0.2.1",
     "sanitize-html": "^2.11.0",
+    "stripe": "^14.14.0",
     "typeorm": "^0.3.19"
   }
 }

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import myDataSource from "../config/db.config";
 import { Order } from "../entity/order.entity";
 import logger from "../config/logger";
+import Stripe from "stripe";
 import { Link } from "../entity/link.entity";
 import { Product } from "../entity/product.entity";
 import { OrderItem } from "../entity/order-item.entity";
@@ -44,7 +45,7 @@ export const CreateOrder = async (req: Request, res: Response) => {
     }
 
     const queryRunner = myDataSource.createQueryRunner();
-    
+
     try {
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -65,6 +66,8 @@ export const CreateOrder = async (req: Request, res: Response) => {
         // ? let order = new Order();
         order = await queryRunner.manager.save(order);
 
+        const line_items = [];
+
         for (let p of body.products) {
             const product = await myDataSource.getRepository(Product).findOne({
                 where: { id: p.product_id }
@@ -79,11 +82,41 @@ export const CreateOrder = async (req: Request, res: Response) => {
             orderItem.admin_revenue = Math.round(0.9 * product.price * p.quantity);
 
             await queryRunner.manager.save(orderItem);
+
+            line_items.push({
+                price_data: {
+                    currency: 'idr',
+                    unit_amount: product.price,
+                    product_data: {
+                        name: product.title,
+                        description: product.description,
+                        images: [
+                            product.image
+                        ]
+                    },
+                },
+                quantity: p.quantity
+            })
         }
+
+        const stripe = new Stripe(process.env.STRIPE_SECRET, {
+            apiVersion: '2023-10-16'
+        });
+
+        const source = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode: 'payment',
+            line_items,
+            success_url: `${process.env.CHECKOUT_URL}/success?source={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.CHECKOUT_URL}/error`
+        })
+
+        order.transaction_id = source['id'];
+        await queryRunner.manager.save(order);
 
         await queryRunner.commitTransaction();
 
-        res.send(order)
+        res.send(source)
     } catch (error) {
         await queryRunner.rollbackTransaction();
         logger.error(error);
