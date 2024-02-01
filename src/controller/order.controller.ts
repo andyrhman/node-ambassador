@@ -1,11 +1,16 @@
 import { Request, Response } from "express";
 import myDataSource from "../config/db.config";
 import { Order } from "../entity/order.entity";
-import logger from "../config/logger";
-import Stripe from "stripe";
 import { Link } from "../entity/link.entity";
 import { Product } from "../entity/product.entity";
 import { OrderItem } from "../entity/order-item.entity";
+import { User } from "../entity/user.entity";
+import { client } from "..";
+import logger from "../config/logger";
+import Stripe from "stripe";
+import transporter from "../config/transporter";
+import * as fs from 'fs';
+import * as handlebars from 'handlebars';
 
 export const Orders = async (req: Request, res: Response) => {
     try {
@@ -119,6 +124,69 @@ export const CreateOrder = async (req: Request, res: Response) => {
         res.send(source)
     } catch (error) {
         await queryRunner.rollbackTransaction();
+        logger.error(error);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
+
+export const ConfirmOrder = async (req: Request, res: Response) => {
+    try {
+        const repository = myDataSource.getRepository(Order);
+
+        const order = await repository.findOne({
+            where: { transaction_id: req.body.source },
+            relations: ['order_items']
+        });
+
+        if (!order) {
+            return res.status(400).send({ message: "Invalid Request" })
+        }
+
+        await repository.update(order.id, { complete: true });
+
+        const user = await myDataSource.getRepository(User).findOne({
+            where: { id: order.user_id }
+        });
+
+        await client.zIncrBy('rankings', order.ambassador_revenue, user.fullName);
+
+        // ? https://www.phind.com/search?cache=lk6d4xezo7ag6qha2hoi70i5
+        const adminSource = fs.readFileSync('src/templates/admin-order.handlebars', 'utf-8').toString();
+        const ambassadorSource = fs.readFileSync('src/templates/ambassador-order.handlebars', 'utf-8').toString();
+        const adminTemplate = handlebars.compile(adminSource);
+        const ambassadorTemplate = handlebars.compile(ambassadorSource);
+        const adminReplacement = {
+            orderId: order.id,
+            orderTotal: `Rp${new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(order.total / 1000)}`
+        };
+        const ambassadorReplacement = {
+            ambassadorRevenue: `Rp${new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(order.ambassador_revenue / 1000)}`,
+            orderCode: order.code
+        };
+        const sendToAdmin = adminTemplate(adminReplacement);
+        const sendToAmbassador = ambassadorTemplate(ambassadorReplacement);
+
+        const optionsAdmin = {
+            from: 'service@mail.com',
+            to: 'admin@admin.com',
+            subject: "An order has been completed",
+            html: sendToAdmin
+        }
+
+        const optionsAmbassador = {
+            from: 'service@mail.com',
+            to: order.ambassador_email,
+            subject: "An order has been completed",
+            html: sendToAmbassador
+        }
+
+        await transporter.sendMail(optionsAdmin);
+        await transporter.sendMail(optionsAmbassador);
+
+        res.status(202).send({
+            message: "Your order has been successfully completed"
+        })
+    } catch (error) {
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }

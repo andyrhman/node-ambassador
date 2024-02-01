@@ -4,7 +4,7 @@ import { AuthMiddleware } from "./middleware/auth.middleware";
 import { Ambassadors } from "./controller/user.controller";
 import { CreateProduct, DeleteProduct, GetProduct, Products, ProductsBackend, ProductsFrontend, UpdateProduct } from "./controller/product.controller";
 import { CreateLink, GetLink, Links, Rankings, Stats } from "./controller/link.controller";
-import { CreateOrder, Orders } from "./controller/order.controller";
+import { ConfirmOrder, CreateOrder, Orders } from "./controller/order.controller";
 
 const routes = (router: Router) => {
     // * Admin
@@ -39,6 +39,7 @@ const routes = (router: Router) => {
     // Checkout
     router.get('/api/checkout/links/:code', GetLink);
     router.post('/api/checkout/orders', CreateOrder);
+    router.post('/api/checkout/orders/confirm', ConfirmOrder);
 }
 
 export default routes;
