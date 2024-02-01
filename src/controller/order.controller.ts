@@ -32,17 +32,22 @@ export const Orders = async (req: Request, res: Response) => {
 }
 
 export const CreateOrder = async (req: Request, res: Response) => {
+    const body = req.body;
+
+    const link = await myDataSource.getRepository(Link).findOne({
+        where: { code: body.code },
+        relations: ['user']
+    });
+
+    if (!link) {
+        return res.status(400).send({ message: "Invalid Code" })
+    }
+
+    const queryRunner = myDataSource.createQueryRunner();
+    
     try {
-        const body = req.body;
-
-        const link = await myDataSource.getRepository(Link).findOne({
-            where: { code: body.code },
-            relations: ['user']
-        });
-
-        if (!link) {
-            return res.status(400).send({ message: "Invalid Code" })
-        }
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         let order = new Order();
         order.user_id = link.user.id;
@@ -55,7 +60,10 @@ export const CreateOrder = async (req: Request, res: Response) => {
         order.city = body.city;
         order.zip = body.zip;
 
-        order = await myDataSource.getRepository(Order).save(order);
+        // ? Query runner alrady know we are inserting this order
+        // ? in the order table because we declare the variable like this
+        // ? let order = new Order();
+        order = await queryRunner.manager.save(order);
 
         for (let p of body.products) {
             const product = await myDataSource.getRepository(Product).findOne({
@@ -70,11 +78,14 @@ export const CreateOrder = async (req: Request, res: Response) => {
             orderItem.ambassador_revenue = Math.round(0.1 * product.price * p.quantity);
             orderItem.admin_revenue = Math.round(0.9 * product.price * p.quantity);
 
-            await myDataSource.getRepository(OrderItem).save(orderItem);
+            await queryRunner.manager.save(orderItem);
         }
+
+        await queryRunner.commitTransaction();
 
         res.send(order)
     } catch (error) {
+        await queryRunner.rollbackTransaction();
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
     }
