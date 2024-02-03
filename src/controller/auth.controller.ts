@@ -102,17 +102,44 @@ export const AuthenticatedUser = async (req: Request, res: Response) => {
             * but for this project we count the revenue inside the controller
             * use this alternative if you don't want to use the nestjs one
         */
-        const orders = await Order.find({
-            where: {
-                user_id: data.id,
-                complete: true
-            },
-            relations: ['order_items']
-        });
 
-        data.revenue = orders.reduce((s, o) => s + o.ambassador_revenue, 0);
+        // ?? https://www.phind.com/search?cache=bhbswt5hxwnryzyqzk16lfgc
+        const result = await User.aggregate([
+            { $match: { _id: data._id } },
+            { $lookup: {
+                from: 'orders',
+                localField: '_id',
+                foreignField: 'user_id',
+                as: 'orders'
+            }},
+            { $unwind: '$orders' },
+            { $match: { 'orders.complete': true } },
+            { $lookup: {
+                from: 'order_items',
+                localField: 'orders._id',
+                foreignField: 'order',
+                as: 'order_items'
+            }},
+            { $unwind: '$order_items' },
+            { $group: {
+                _id: '$_id',
+                fullName: { $first: '$fullName' },
+                username: { $first: '$username' },
+                email: { $first: '$email' },
+                is_ambassador: { $first: '$is_ambassador' },
+                revenue: { $sum: '$order_items.ambassador_revenue' }
+            }},
+            { $project: {
+                _id: 0,
+                fullName: 1,
+                username: 1,
+                email: 1,
+                is_ambassador: 1,
+                revenue: 1
+            }}
+        ])
 
-        res.send(data);
+        res.send(result);
     } catch (error) {
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
@@ -187,9 +214,9 @@ export const UpdatePassword = async (req: Request, res: Response) => {
         });
 
         const userData = data.toObject();
-        
+
         delete userData.password;
-        
+
         res.send(userData);
     } catch (error) {
         logger.error(error);

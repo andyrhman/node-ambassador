@@ -21,25 +21,25 @@ export const Links = async (req: Request, res: Response) => {
     }
 }
 
-// export const CreateLink = async (req: Request, res: Response) => {
-//     try {
-//         const user = req['user']
-//         const link = await myDataSource.getRepository(Link).save({
-//             user,
-//             code: Math.random().toString(36).substring(6),
-//             products: req.body.products.map((id: any) => {
-//                 return {
-//                     id: id
-//                 }
-//             })
-//         });
+export const CreateLink = async (req: Request, res: Response) => {
+    try {
+        const user = req['user']
+        const link = await Link.create({
+            user_id: user._id,
+            code: Math.random().toString(36).substring(6),
+            products: req.body.products.map((_id: any) => {
+                return {
+                    _id: _id
+                }
+            })
+        });
 
-//         res.send(link);
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+        res.send(link);
+    } catch (error) {
+        logger.error(error);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
 
 // export const Stats = async (req: Request, res: Response) => {
 //     try {
