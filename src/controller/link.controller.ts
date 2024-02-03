@@ -1,24 +1,25 @@
-// import { Request, Response } from "express";
-// import { Link } from "../models/link.schema";
-// import logger from "../config/logger";
-// import myDataSource from "../config/db.config";
-// import { Order } from "../models/order.schema";
-// import { User } from "../models/user.schema";
-// import { client } from "../index";
+import { Request, Response } from "express";
+import { Link } from "../models/link.schema";
+import logger from "../config/logger";
+import myDataSource from "../config/db.config";
+import { Order } from "../models/order.schema";
+import { User } from "../models/user.schema";
+import { client } from "../index";
 
-// export const Links = async (req: Request, res: Response) => {
-//     try {
-//         const links = await myDataSource.getRepository(Link).find({
-//             where: { user_id: req.params.id },
-//             relations: ['orders', 'orders.order_items']
-//         })
+export const Links = async (req: Request, res: Response) => {
+    try {
+        const links = await Link.find({user_id: req.params.id}).populate('orders')
+        // const links = await myDataSource.getRepository(Link).find({
+        //     where: { user_id: req.params.id },
+        //     relations: ['orders', 'orders.order_items']
+        // })
 
-//         res.send(links)
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+        res.send(links)
+    } catch (error) {
+        logger.error(error);
+        return res.status(400).send({ message: "Invalid Request" })
+    }
+}
 
 // export const CreateLink = async (req: Request, res: Response) => {
 //     try {

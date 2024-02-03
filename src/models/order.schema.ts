@@ -17,12 +17,14 @@ export interface OrderDocument extends Document {
     complete: boolean;
     created_at: Date;
     order_items: OrderItemDocument[];
-    links: LinkDocument;
+    links: mongoose.Schema.Types.ObjectId;
+    ambassador_revenue: number;
+    admin_revenue: number;
 }
 
 export const OrderSchema = new Schema<OrderDocument>({
     transaction_id: { type: String, nullable: true },
-    user_id: { type: mongoose.Schema.Types.ObjectId },
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     code: { type: String },
     ambassador_email: { type: String },
     fullName: { type: String },

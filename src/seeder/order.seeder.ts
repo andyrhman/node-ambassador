@@ -5,10 +5,12 @@ import { Order } from "../models/order.schema";
 import { OrderItem } from "../models/order-item.schema";
 import { User } from "../models/user.schema";
 import { randomInt } from "crypto";
+import { Link } from "../models/link.schema";
 
 mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
 
     const users = await User.find();
+    const link = await Link.find();
 
     for (let i = 0; i < 30; i++) {
         const order = await Order.create({
@@ -21,6 +23,7 @@ mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
             country: faker.location.country(),
             city: faker.location.city(),
             zip: faker.location.zipCode(),
+            links: link[i].id,
             order_items: [],
             complete: true
         })

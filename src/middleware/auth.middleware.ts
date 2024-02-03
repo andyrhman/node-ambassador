@@ -1,6 +1,5 @@
 import { Request, Response } from "express"
 import { verify } from "jsonwebtoken";
-import myDataSource from "../config/db.config";
 import { User } from "../models/user.schema";
 import logger from "../config/logger";
 
@@ -17,7 +16,7 @@ export const AuthMiddleware = async (req: Request, res: Response, next: Function
         // ? check if ambassdor by using the ambassador endpoints
         const is_ambassador = req.path.indexOf('api/ambassador') >= 0;
 
-        const user = await myDataSource.getRepository(User).findOne({ where: { id: payload.id } });
+        const user = await User.findOne({ _id: payload.id });
 
         if ((is_ambassador && payload.scope !== 'ambassador') || (!is_ambassador && payload.scope !== 'admin')) {
             return res.status(403).send({ message: "Unauthorized" })

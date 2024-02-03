@@ -13,7 +13,7 @@ export const UserSchema = new Schema({
     fullName: { type: String },
     username: { type: String, unique: true },
     email: { type: String, unique: true },
-    password: { type: String, select: false },
+    password: { type: String },
     is_ambassador: { type: Boolean, default: false }
 })
 
