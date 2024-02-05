@@ -3,20 +3,32 @@ import logger from "../config/logger";
 import { fakerID_ID as faker } from "@faker-js/faker";
 import { Link } from "../models/link.schema";
 import { User } from "../models/user.schema";
+import { Product } from "../models/product.schema";
+import { randomInt } from "crypto";
 
+// ? https://www.phind.com/search?cache=a2g4i4hs6b3z36qrktxbvu8t
 mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
     const users = await User.find();
+    const products = await Product.find();
 
     for (let i = 0; i < 30; i++) {
-        await Link.create({
+        const links = await Link.create({
             code: faker.string.alphanumeric(7),
             user_id: users[i % users.length].id,
-            price: parseInt(faker.commerce.price({ min: 10000, max: 500000, dec: 0 }))
+            price: parseInt(faker.commerce.price({ min: 10000, max: 500000, dec: 0 })),
+            products: [],
+            orders: []
         })
+
+        for (let j = 0; j < randomInt(1, 5); j++) {
+            await Link.findByIdAndUpdate(links, {
+                $push: { products: products[j]._id }
+            });
+        }
     }
 
     logger.info("🌱 Seeding has been completed")
     process.exit(0);
 }).catch((err) => {
-    logger.error(err.message);
+    logger.error(err);
 })

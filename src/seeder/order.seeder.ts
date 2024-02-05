@@ -8,7 +8,6 @@ import { randomInt } from "crypto";
 import { Link } from "../models/link.schema";
 
 mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
-
     const users = await User.find();
     const link = await Link.find();
 
@@ -40,7 +39,13 @@ mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
             order.order_items.push(orderItem)
         }
 
-        await order.save()
+        await order.save();
+
+        for (let j = 0; j < randomInt(1, 5); j++) {
+            await Link.findByIdAndUpdate(link[i].id, {
+                $push: { orders: order }
+            });
+        }
     }
 
     logger.info("🌱 Seeding has been completed")

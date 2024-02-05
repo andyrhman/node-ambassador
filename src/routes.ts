@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { AuthenticatedUser, Login, Logout, Register, UpdateInfo, UpdatePassword } from "./controller/auth.controller";
 import { AuthMiddleware } from "./middleware/auth.middleware";
-import { CreateLink } from "./controller/link.controller";
+import { CreateLink, Links } from "./controller/link.controller";
+
 // import { Ambassadors } from "./controller/user.controller";
 // import { CreateProduct, DeleteProduct, GetProduct, Products, ProductsBackend, ProductsFrontend, UpdateProduct } from "./controller/product.controller";
 // import { CreateLink, GetLink, Links, Rankings, Stats } from "./controller/link.controller";
@@ -21,7 +22,7 @@ const routes = (router: Router) => {
     // router.get('/api/admin/products/:id', AuthMiddleware, GetProduct);
     // router.put('/api/admin/products/:id', AuthMiddleware, UpdateProduct);
     // router.delete('/api/admin/products/:id', AuthMiddleware, DeleteProduct);
-    // router.get('/api/admin/users/:id/links', AuthMiddleware, Links);
+    router.get('/api/admin/users/:id/links', AuthMiddleware, Links);
     // router.get('/api/admin/orders', AuthMiddleware, Orders);
 
     // * Ambassador
@@ -37,7 +38,7 @@ const routes = (router: Router) => {
     // router.get('/api/ambassador/stats', AuthMiddleware, Stats);
     // router.get('/api/ambassador/rankings', AuthMiddleware, Rankings);
 
-    // // Checkout
+    // Checkout
     // router.get('/api/checkout/links/:code', GetLink);
     // router.post('/api/checkout/orders', CreateOrder);
     // router.post('/api/checkout/orders/confirm', ConfirmOrder);
