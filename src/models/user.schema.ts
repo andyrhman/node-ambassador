@@ -12,6 +12,7 @@ export interface UserDocument extends Document {
     revenue: number;
 }
 
+//? https://www.phind.com/search?cache=dcfe140zyh37cwu8jfucueb4
 export const UserSchema = new Schema<UserDocument>({
     fullName: { type: String },
     username: { type: String, unique: true },

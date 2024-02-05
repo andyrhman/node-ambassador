@@ -8,6 +8,7 @@ import { User } from "../models/user.schema";
 import { randomInt } from "crypto";
 import { Link } from "../models/link.schema";
 
+//? https://www.phind.com/search?cache=dcfe140zyh37cwu8jfucueb4
 mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
     const link = await Link.find();
     const password = await argon2.hash("123123");

@@ -22,6 +22,7 @@ export interface OrderDocument extends Document {
     admin_revenue: number;
 }
 
+// ? https://www.phind.com/search?cache=dcfe140zyh37cwu8jfucueb4
 export const OrderSchema = new Schema<OrderDocument>({
     transaction_id: { type: String, nullable: true },
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
