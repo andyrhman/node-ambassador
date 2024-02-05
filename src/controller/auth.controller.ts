@@ -139,7 +139,7 @@ export const AuthenticatedUser = async (req: Request, res: Response) => {
             }}
         ])
 
-        res.send(result);
+        res.send(result[0]);
     } catch (error) {
         logger.error(error);
         return res.status(400).send({ message: "Invalid Request" })
