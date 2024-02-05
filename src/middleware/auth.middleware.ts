@@ -16,7 +16,12 @@ export const AuthMiddleware = async (req: Request, res: Response, next: Function
         // ? check if ambassdor by using the ambassador endpoints
         const is_ambassador = req.path.indexOf('api/ambassador') >= 0;
 
-        const user = await User.findOne({ _id: payload.id });
+        const user = await User.findOne({ _id: payload.id }).populate({
+            path: 'orders',
+            populate: {
+                path: 'order_items'
+            }
+        });
 
         if ((is_ambassador && payload.scope !== 'ambassador') || (!is_ambassador && payload.scope !== 'admin')) {
             return res.status(403).send({ message: "Unauthorized" })

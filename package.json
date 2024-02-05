@@ -9,7 +9,8 @@
     "seed:products": "chcp 65001 && ts-node src/seeder/product.seeder.ts",
     "seed:links": "chcp 65001 && ts-node src/seeder/link.seeder.ts",
     "seed:orders": "chcp 65001 && ts-node src/seeder/order.seeder.ts",
-    "update:rankings": "chcp 65001 && ts-node src/seeder/ranking.ts"
+    "update:rankings": "chcp 65001 && ts-node src/seeder/ranking.ts",
+    "seed:test": "chcp 65001 && ts-node src/seeder/test.seeder.ts"
   },
   "repository": {
     "type": "git",
