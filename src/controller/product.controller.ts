@@ -1,150 +1,148 @@
-// import myDataSource from "../config/db.config";
-// import logger from "../config/logger";
-// import sanitizeHtml from 'sanitize-html';
-// import { Request, Response } from "express";
-// import { Product } from "../models/product.schema";
-// import { client } from "../index";
+import logger from "../config/logger";
+import sanitizeHtml from "sanitize-html";
+import { Request, Response } from "express";
+import { Product } from "../models/product.schema";
+import { client } from "../index";
 
-// export const Products = async (req: Request, res: Response) => {
-//     try {
-//         res.send(await myDataSource.getRepository(Product).find())
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
+export const Products = async (req: Request, res: Response) => {
+  try {
+    res.send(await Product.find());
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-// }
+export const CreateProduct = async (req: Request, res: Response) => {
+  try {
+    res.send(await Product.create(req.body));
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-// export const CreateProduct = async (req: Request, res: Response) => {
-//     try {
-//         res.send(await myDataSource.getRepository(Product).save(req.body))
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+export const GetProduct = async (req: Request, res: Response) => {
+  try {
+    res.send(await Product.findById(req.params.id));
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-// export const GetProduct = async (req: Request, res: Response) => {
-//     try {
-//         res.send(await myDataSource.getRepository(Product).findOne({ where: { id: req.params.id } }))
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+export const UpdateProduct = async (req: Request, res: Response) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
-// export const UpdateProduct = async (req: Request, res: Response) => {
-//     try {
-//         const repository = myDataSource.getRepository(Product);
+    res.status(202).send(product);
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-//         await repository.update(req.params.id, req.body);
+export const DeleteProduct = async (req: Request, res: Response) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
 
-//         res.status(202).send(await repository.findOne({ where: { id: req.params.id } }))
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    res.status(204).send(null);
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-// export const DeleteProduct = async (req: Request, res: Response) => {
-//     try {
-//         await myDataSource.getRepository(Product).delete(req.params.id);
+export const ProductsFrontend = async (req: Request, res: Response) => {
+  try {
+    // ? Show the products from redis cache
+    let products = JSON.parse(await client.get('products_frontend'));
 
-//         res.status(204).send(null);
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    // ? If the cache has expired
+    if (!products) {
+      // ? Get the products from db
+      products = await Product.find();
 
-// export const ProductsFrontend = async (req: Request, res: Response) => {
-//     try {
-//         // ? Show the products from redis cache
-//         let products = JSON.parse(await client.get('products_frontend'));
+      // ? Set the cache name and expire time
+      await client.set('products_frontend', JSON.stringify(products), {
+        EX: 1800 // ? 30 minutes
+      });
+    }
 
-//         // ? If the cache has expired
-//         if (!products) {
-//             // ? Get the products from db
-//             products = await myDataSource.getRepository(Product).find()
+    res.send(products);
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-//             // ? Set the cache name and expire time
-//             await client.set('products_frontend', JSON.stringify(products), {
-//                 EX: 1800 // ? 30 minutes
-//             })
-//         }
+export const ProductsBackend = async (req: Request, res: Response) => {
+  try {
+    // ? Show the products from redis cache
+    let products = JSON.parse(await client.get('products_frontend'));
 
-//         res.send(products)
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    // ? If the cache has expired
+    if (!products) {
+      // ? Get the products from db
+      products = await Product.find();
 
-// export const ProductsBackend = async (req: Request, res: Response) => {
-//     try {
-//         // ? Show the products from redis cache
-//         let products = JSON.parse(await client.get('products_frontend'));
+      // ? Set the cache name and expire time
+      await client.set('products_frontend', JSON.stringify(products), {
+        EX: 1800 // ? 30 minutes
+      });
+    }
 
-//         // ? If the cache has expired
-//         if (!products) {
-//             // ? Get the products from db
-//             products = await myDataSource.getRepository(Product).find()
+    // * Search product
+    let search: any = req.query.search;
 
-//             // ? Set the cache name and expire time
-//             await client.set('products_frontend', JSON.stringify(products), {
-//                 EX: 1800 // ? 30 minutes
-//             })
-//         }
+    // https://www.phind.com/search?cache=za3cyqzb06bugle970v91phl
+    search = sanitizeHtml(search);
+    if (search) {
+      products = products.filter(
+        p => p.title.toLowerCase().indexOf(search) >= 0 ||
+          p.description.toLowerCase().indexOf(search) >= 0
+      );
 
-//         // * Search product
-//         let search: any = req.query.search;
+      // Check if the resulting filtered data array is empty
+      if (products.length === 0) {
+        // Respond with a 404 status code and a message
+        return res.status(404).json({ message: `No ${search} matching your search criteria.` });
+      }
+    }
 
-//         // https://www.phind.com/search?cache=za3cyqzb06bugle970v91phl
-//         search = sanitizeHtml(search);
-//         if (search) {
-//             products = products.filter(
-//                 p => p.title.toLowerCase().indexOf(search) >= 0 ||
-//                     p.description.toLowerCase().indexOf(search) >= 0
-//             );
+    // * Sorting the products
+    let sort: any = req.query.sort;
+    sort = sanitizeHtml(sort);
 
-//             // Check if the resulting filtered data array is empty
-//             if (products.length === 0) {
-//                 // Respond with a 404 status code and a message
-//                 return res.status(404).json({ message: `No ${search} matching your search criteria.` });
-//             }
-//         }
+    if (sort === 'asc' || sort === 'desc') {
+      products.sort((a, b) => {
+        const diff = a.price - b.price;
 
-//         // * Sorting the products
-//         let sort: any = req.query.sort;
-//         sort = sanitizeHtml(sort);
+        if (diff === 0) return 0;
 
-//         if (sort === 'asc' || sort === 'desc') {
-//             products.sort((a, b) => {
-//                 const diff = a.price - b.price;
+        const sign = Math.abs(diff) / diff;
 
-//                 if (diff === 0) return 0;
+        return sort === 'asc' ? -sign : sign;
+      });
+    }
 
-//                 const sign = Math.abs(diff) / diff;
+    // * Paginating products
+    const page: number = parseInt(req.query.page as any) || 1;
+    const perPage = 9;
+    const total = products.length;
 
-//                 return sort === 'asc' ? -sign : sign;
-//             })
-//         }
+    const data = products.slice((page - 1) * perPage, page * perPage);
 
-//         // * Paginating products
-//         const page: number = parseInt(req.query.page as any) || 1;
-//         const perPage = 9;
-//         const total = products.length;
-
-//         const data = products.slice((page - 1) * perPage, page * perPage)
-
-//         res.send({
-//             data,
-//             total,
-//             page,
-//             last_page: Math.ceil(total / perPage)
-//         });
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    res.send({
+      data,
+      total,
+      page,
+      last_page: Math.ceil(total / perPage)
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};

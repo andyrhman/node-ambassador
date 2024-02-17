@@ -4,9 +4,9 @@ import { RegisterDto } from "../validation/dto/register.dto";
 import { validate } from "class-validator";
 import { formatValidationErrors } from "../utility/validation.utility";
 import { User, UserDocument } from "../models/user.schema";
-import logger from "../config/logger"
+import logger from "../config/logger";
 import myDataSource from "../config/db.config";
-import * as argon2 from 'argon2'
+import * as argon2 from 'argon2';
 import { sign, verify } from "jsonwebtoken";
 import { Order } from "../models/order.schema";
 
@@ -31,12 +31,12 @@ export const Register = async (req: Request, res: Response) => {
             is_ambassador: req.path === '/api/ambassador/register'
         })).toObject();
 
-        res.send(user)
+        res.send(user);
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};
 
 export const Login = async (req: Request, res: Response) => {
     try {
@@ -73,14 +73,14 @@ export const Login = async (req: Request, res: Response) => {
             httpOnly: true,
             secure: true,
             maxAge: 24 * 60 * 60 * 1000
-        })
+        });
 
         res.status(200).send({ message: "Successfully logged in!" });
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};
 
 export const AuthenticatedUser = async (req: Request, res: Response) => {
     try {
@@ -106,56 +106,64 @@ export const AuthenticatedUser = async (req: Request, res: Response) => {
         // ?? https://www.phind.com/search?cache=bhbswt5hxwnryzyqzk16lfgc
         const result = await User.aggregate([
             { $match: { _id: data._id } },
-            { $lookup: {
-                from: 'orders',
-                localField: '_id',
-                foreignField: 'user_id',
-                as: 'orders'
-            }},
+            {
+                $lookup: {
+                    from: 'orders',
+                    localField: '_id',
+                    foreignField: 'user_id',
+                    as: 'orders'
+                }
+            },
             { $unwind: '$orders' },
             { $match: { 'orders.complete': true } },
-            { $lookup: {
-                from: 'order_items',
-                localField: 'orders._id',
-                foreignField: 'order',
-                as: 'order_items'
-            }},
+            {
+                $lookup: {
+                    from: 'order_items',
+                    localField: 'orders._id',
+                    foreignField: 'order',
+                    as: 'order_items'
+                }
+            },
             { $unwind: '$order_items' },
-            { $group: {
-                _id: '$_id',
-                fullName: { $first: '$fullName' },
-                username: { $first: '$username' },
-                email: { $first: '$email' },
-                is_ambassador: { $first: '$is_ambassador' },
-                revenue: { $sum: '$order_items.ambassador_revenue' }
-            }},
-            { $project: {
-                _id: 0,
-                fullName: 1,
-                username: 1,
-                email: 1,
-                is_ambassador: 1,
-                revenue: 1
-            }}
-        ])
+            {
+                $group: {
+                    _id: '$_id',
+                    fullName: { $first: '$fullName' },
+                    username: { $first: '$username' },
+                    email: { $first: '$email' },
+                    is_ambassador: { $first: '$is_ambassador' },
+                    revenue: { $sum: '$order_items.ambassador_revenue' }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    fullName: 1,
+                    username: 1,
+                    email: 1,
+                    is_ambassador: 1,
+                    revenue: 1
+                }
+            }
+        ]);
 
         res.send(result[0]);
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};
 
 export const Logout = async (req: Request, res: Response) => {
     try {
         res.clearCookie('user_session');
 
-        res.status(204).send(null)
+        res.status(204).send(null);
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};
 
 export const UpdateInfo = async (req: Request, res: Response) => {
     try {
@@ -194,19 +202,19 @@ export const UpdateInfo = async (req: Request, res: Response) => {
 
         const { password, ...Userdata } = data.toObject();
 
-        res.status(202).send(Userdata)
+        res.status(202).send(Userdata);
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};
 
 export const UpdatePassword = async (req: Request, res: Response) => {
     try {
         const user = req["user"];
 
         if (await req.body.password !== req.body.confirm_password) {
-            return res.status(400).send({ message: "Password not match" })
+            return res.status(400).send({ message: "Password not match" });
         }
 
         const data = await User.findByIdAndUpdate(user.id, {
@@ -220,6 +228,6 @@ export const UpdatePassword = async (req: Request, res: Response) => {
         res.send(userData);
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};
