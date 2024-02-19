@@ -3,13 +3,11 @@ import { AuthenticatedUser, Login, Logout, Register, UpdateInfo, UpdatePassword 
 import { CreateProduct, DeleteProduct, GetProduct, Products, ProductsBackend, ProductsFrontend, UpdateProduct } from "./controller/product.controller";
 import { AuthMiddleware } from "./middleware/auth.middleware";
 import { Ambassadors } from "./controller/user.controller";
-import { CreateLink, Links } from "./controller/link.controller";
-
-// import { CreateLink, GetLink, Links, Rankings, Stats } from "./controller/link.controller";
+import { CreateLink, GetLink, Links, Rankings, Stats } from "./controller/link.controller";
 // import { ConfirmOrder, CreateOrder, Orders } from "./controller/order.controller";
 
 const routes = (router: Router) => {
-    // // * Admin
+    // * Admin
     router.post('/api/admin/register', Register);
     router.post('/api/admin/login', Login);
     router.get('/api/admin/user', AuthMiddleware, AuthenticatedUser);
@@ -35,11 +33,11 @@ const routes = (router: Router) => {
     router.get('/api/ambassador/products/frontend', ProductsFrontend);
     router.get('/api/ambassador/products/backend', ProductsBackend);
     router.post('/api/ambassador/links', AuthMiddleware, CreateLink);
-    // router.get('/api/ambassador/stats', AuthMiddleware, Stats);
-    // router.get('/api/ambassador/rankings', AuthMiddleware, Rankings);
+    router.get('/api/ambassador/stats', AuthMiddleware, Stats);
+    router.get('/api/ambassador/rankings', AuthMiddleware, Rankings);
 
-    // Checkout
-    // router.get('/api/checkout/links/:code', GetLink);
+    // * Checkout
+    router.get('/api/checkout/links/:code', GetLink);
     // router.post('/api/checkout/orders', CreateOrder);
     // router.post('/api/checkout/orders/confirm', ConfirmOrder);
 }

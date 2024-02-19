@@ -97,7 +97,7 @@ export const ProductsBackend = async (req: Request, res: Response) => {
     // * Search product
     let search: any = req.query.search;
 
-    // https://www.phind.com/search?cache=za3cyqzb06bugle970v91phl
+    // ? https://www.phind.com/search?cache=za3cyqzb06bugle970v91phl
     search = sanitizeHtml(search);
     if (search) {
       products = products.filter(
