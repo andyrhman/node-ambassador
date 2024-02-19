@@ -1,193 +1,195 @@
-// import { Request, Response } from "express";
-// import myDataSource from "../config/db.config";
-// import { Order } from "../models/order.schema";
-// import { Link } from "../models/link.schema";
-// import { Product } from "../models/product.schema";
-// import { OrderItem } from "../models/order-item.schema";
-// import { User } from "../models/user.schema";
-// import { client } from "..";
-// import logger from "../config/logger";
-// import Stripe from "stripe";
-// import transporter from "../config/transporter";
-// import * as fs from 'fs';
-// import * as handlebars from 'handlebars';
+import { Request, Response } from "express";
+import mongoose from "mongoose";
+import { Order } from "../models/order.schema";
+import { Link } from "../models/link.schema";
+import { Product } from "../models/product.schema";
+import { OrderItem } from "../models/order-item.schema";
+import { User } from "../models/user.schema";
+import { client } from "..";
+import logger from "../config/logger";
+import Stripe from "stripe";
+import transporter from "../config/transporter";
+import * as fs from "fs";
+import * as handlebars from "handlebars";
 
-// export const Orders = async (req: Request, res: Response) => {
-//     try {
-//         const orders = await myDataSource.getRepository(Order).find({
-//             where: {
-//                 complete: true
-//             },
-//             relations: ['order_items']
-//         })
+export const Orders = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.find({
+      complete: true,
+    }).populate("order_items");
 
-//         res.send(orders.map((order: Order) => {
-//             return {
-//                 id: order.id,
-//                 name: order.fullName,
-//                 email: order.email,
-//                 total: order.total,
-//                 created_at: order.created_at,
-//                 order_items: order.order_items
-//             }
-//         }));
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    res.send(
+      orders.map((order: any) => {
+        return {
+          id: order.id,
+          name: order.fullName,
+          email: order.email,
+          total: order.total,
+          created_at: order.created_at,
+          order_items: order.order_items,
+          revenue: order.ambassador_revenue,
+        };
+      })
+    );
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-// export const CreateOrder = async (req: Request, res: Response) => {
-//     const body = req.body;
+export const CreateOrder = async (req: Request, res: Response) => {
+  const body = req.body;
 
-//     const link = await myDataSource.getRepository(Link).findOne({
-//         where: { code: body.code },
-//         relations: ['user']
-//     });
+  const link = await Link.findOne({ code: body.code }).populate("user_id");
 
-//     if (!link) {
-//         return res.status(400).send({ message: "Invalid Code" })
-//     }
+  if (!link) {
+    return res.status(400).send({ message: "Invalid Code" });
+  }
 
-//     const queryRunner = myDataSource.createQueryRunner();
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-//     try {
-//         await queryRunner.connect();
-//         await queryRunner.startTransaction();
+  try {
+    let order = new Order();
+    order.user_id = link.user_id.id;
+    order.code = body.code;
+    order.ambassador_email = link.user_id.email;
+    order.links = link.id;
+    order.fullName = body.fullName;
+    order.email = body.email;
+    order.address = body.address;
+    order.country = body.country;
+    order.city = body.city;
+    order.zip = body.zip;
 
-//         let order = new Order();
-//         order.user_id = link.user.id;
-//         order.code = body.code;
-//         order.ambassador_email = link.user.email;
-//         order.fullName = body.fullName;
-//         order.email = body.email;
-//         order.address = body.address;
-//         order.country = body.country;
-//         order.city = body.city;
-//         order.zip = body.zip;
+    order = await order.save({ session });
 
-//         // ? Query runner alrady know we are inserting this order
-//         // ? in the order table because we declare the variable like this
-//         // ? let order = new Order();
-//         order = await queryRunner.manager.save(order);
+    const line_items = [];
 
-//         const line_items = [];
+    for (let p of body.products) {
+      const product = await Product.findById(p.product_id, null, { session });
 
-//         for (let p of body.products) {
-//             const product = await myDataSource.getRepository(Product).findOne({
-//                 where: { id: p.product_id }
-//             });
+      let orderItem = new OrderItem();
+      orderItem.order = order;
+      orderItem.product_title = product.title;
+      orderItem.price = product.price;
+      orderItem.quantity = p.quantity;
+      orderItem.ambassador_revenue = Math.round(
+        0.1 * product.price * p.quantity
+      );
+      orderItem.admin_revenue = Math.round(0.9 * product.price * p.quantity);
 
-//             let orderItem = new OrderItem();
-//             orderItem.order = order;
-//             orderItem.product_title = product.title;
-//             orderItem.price = product.price;
-//             orderItem.quantity = p.quantity;
-//             orderItem.ambassador_revenue = Math.round(0.1 * product.price * p.quantity);
-//             orderItem.admin_revenue = Math.round(0.9 * product.price * p.quantity);
+      await orderItem.save({ session });
 
-//             await queryRunner.manager.save(orderItem);
+      order.order_items.push(orderItem);
 
-//             line_items.push({
-//                 price_data: {
-//                     currency: 'idr',
-//                     unit_amount: product.price,
-//                     product_data: {
-//                         name: product.title,
-//                         description: product.description,
-//                         images: [
-//                             product.image
-//                         ]
-//                     },
-//                 },
-//                 quantity: p.quantity
-//             })
-//         }
+      line_items.push({
+        price_data: {
+          currency: "idr",
+          unit_amount: product.price,
+          product_data: {
+            name: product.title,
+            description: product.description,
+            images: [product.image],
+          },
+        },
+        quantity: p.quantity,
+      });
+    }
 
-//         const stripe = new Stripe(process.env.STRIPE_SECRET, {
-//             apiVersion: '2023-10-16'
-//         });
+    const stripe = new Stripe(process.env.STRIPE_SECRET, {
+      apiVersion: "2023-10-16",
+    });
 
-//         const source = await stripe.checkout.sessions.create({
-//             payment_method_types: ['card'],
-//             mode: 'payment',
-//             line_items,
-//             success_url: `${process.env.CHECKOUT_URL}/success?source={CHECKOUT_SESSION_ID}`,
-//             cancel_url: `${process.env.CHECKOUT_URL}/error`
-//         })
+    const source = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      line_items,
+      success_url: `${process.env.CHECKOUT_URL}/success?source={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CHECKOUT_URL}/error`,
+    });
 
-//         order.transaction_id = source['id'];
-//         await queryRunner.manager.save(order);
+    order.transaction_id = source["id"];
 
-//         await queryRunner.commitTransaction();
+    await order.save({ session });
 
-//         res.send(source)
-//     } catch (error) {
-//         await queryRunner.rollbackTransaction();
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    await session.commitTransaction();
 
-// export const ConfirmOrder = async (req: Request, res: Response) => {
-//     try {
-//         const repository = myDataSource.getRepository(Order);
+    session.endSession();
 
-//         const order = await repository.findOne({
-//             where: { transaction_id: req.body.source },
-//             relations: ['order_items']
-//         });
+    res.send(source);
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};
 
-//         if (!order) {
-//             return res.status(400).send({ message: "Invalid Request" })
-//         }
+export const ConfirmOrder = async (req: Request, res: Response) => {
+  try {
+    const order = await Order.findOne({
+      transaction_id: req.body.source,
+    }).populate("order_items");
 
-//         await repository.update(order.id, { complete: true });
+    if (!order) {
+      return res.status(400).send({ message: "Invalid Request" });
+    }
 
-//         const user = await myDataSource.getRepository(User).findOne({
-//             where: { id: order.user_id }
-//         });
+    await Order.findByIdAndUpdate(order.id, { complete: true });
 
-//         await client.zIncrBy('rankings', order.ambassador_revenue, user.fullName);
+    const user = await User.findById(order.user_id);
 
-//         // ? https://www.phind.com/search?cache=lk6d4xezo7ag6qha2hoi70i5
-//         const adminSource = fs.readFileSync('src/templates/admin-order.handlebars', 'utf-8').toString();
-//         const ambassadorSource = fs.readFileSync('src/templates/ambassador-order.handlebars', 'utf-8').toString();
-//         const adminTemplate = handlebars.compile(adminSource);
-//         const ambassadorTemplate = handlebars.compile(ambassadorSource);
-//         const adminReplacement = {
-//             orderId: order.id,
-//             orderTotal: `Rp${new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(order.total / 1000)}`
-//         };
-//         const ambassadorReplacement = {
-//             ambassadorRevenue: `Rp${new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(order.ambassador_revenue / 1000)}`,
-//             orderCode: order.code
-//         };
-//         const sendToAdmin = adminTemplate(adminReplacement);
-//         const sendToAmbassador = ambassadorTemplate(ambassadorReplacement);
+    await client.zIncrBy("rankings", order.ambassador_revenue, user.fullName);
 
-//         const optionsAdmin = {
-//             from: 'service@mail.com',
-//             to: 'admin@admin.com',
-//             subject: "An order has been completed",
-//             html: sendToAdmin
-//         }
+    // ? https://www.phind.com/search?cache=lk6d4xezo7ag6qha2hoi70i5
+    const adminSource = fs
+      .readFileSync("src/templates/admin-order.handlebars", "utf-8")
+      .toString();
+    const ambassadorSource = fs
+      .readFileSync("src/templates/ambassador-order.handlebars", "utf-8")
+      .toString();
+    const adminTemplate = handlebars.compile(adminSource);
+    const ambassadorTemplate = handlebars.compile(ambassadorSource);
+    const adminReplacement = {
+      orderId: order.id,
+      orderTotal: `Rp${new Intl.NumberFormat("de-DE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(order.total / 1000)}`,
+    };
+    const ambassadorReplacement = {
+      ambassadorRevenue: `Rp${new Intl.NumberFormat("de-DE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(order.ambassador_revenue / 1000)}`,
+      orderCode: order.code,
+    };
+    const sendToAdmin = adminTemplate(adminReplacement);
+    const sendToAmbassador = ambassadorTemplate(ambassadorReplacement);
 
-//         const optionsAmbassador = {
-//             from: 'service@mail.com',
-//             to: order.ambassador_email,
-//             subject: "An order has been completed",
-//             html: sendToAmbassador
-//         }
+    const optionsAdmin = {
+      from: "service@mail.com",
+      to: "admin@admin.com",
+      subject: "An order has been completed",
+      html: sendToAdmin,
+    };
 
-//         await transporter.sendMail(optionsAdmin);
-//         await transporter.sendMail(optionsAmbassador);
+    const optionsAmbassador = {
+      from: "service@mail.com",
+      to: order.ambassador_email,
+      subject: "An order has been completed",
+      html: sendToAmbassador,
+    };
 
-//         res.status(202).send({
-//             message: "Your order has been successfully completed"
-//         })
-//     } catch (error) {
-//         logger.error(error);
-//         return res.status(400).send({ message: "Invalid Request" })
-//     }
-// }
+    await transporter.sendMail(optionsAdmin);
+    await transporter.sendMail(optionsAmbassador);
+
+    res.status(202).send({
+      message: "Your order has been successfully completed",
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(400).send({ message: "Invalid Request" });
+  }
+};

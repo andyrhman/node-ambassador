@@ -1,3 +1,4 @@
+require('dotenv').config();
 import mongoose from "mongoose";
 import logger from "../config/logger";
 import { fakerID_ID as faker } from "@faker-js/faker";
@@ -7,7 +8,7 @@ import { User } from "../models/user.schema";
 import { randomInt } from "crypto";
 import { Link } from "../models/link.schema";
 
-mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
+mongoose.connect(`mongodb+srv://tataran:${process.env.MONGO_PASSWORD}@nodeadmin.yjvkzpx.mongodb.net/node_ambassador?retryWrites=true&w=majority`).then(async () => {
     const users = await User.find();
     const link = await Link.find();
 

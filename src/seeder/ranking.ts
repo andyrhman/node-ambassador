@@ -9,7 +9,7 @@ require('../models/order.schema');
 require('../models/order-item.schema');
 
 mongoose
-  .connect("mongodb://localhost/node_ambassador")
+  .connect(`mongodb+srv://tataran:${process.env.MONGO_PASSWORD}@nodeadmin.yjvkzpx.mongodb.net/node_ambassador?retryWrites=true&w=majority`)
   .then(async () => {
     const client = createClient({
       url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@redis-14459.c252.ap-southeast-1-1.ec2.cloud.redislabs.com:14459`,

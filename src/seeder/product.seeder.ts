@@ -1,9 +1,10 @@
+require('dotenv').config();
 import mongoose from "mongoose";
 import logger from "../config/logger";
 import { fakerID_ID as faker } from "@faker-js/faker";
 import { Product } from "../models/product.schema";
 
-mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
+mongoose.connect(`mongodb+srv://tataran:${process.env.MONGO_PASSWORD}@nodeadmin.yjvkzpx.mongodb.net/node_ambassador?retryWrites=true&w=majority`).then(async () => {
 
     for (let i = 0; i < 30; i++) {
         await Product.create({

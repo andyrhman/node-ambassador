@@ -20,6 +20,7 @@ export interface OrderDocument extends Document {
     links: mongoose.Schema.Types.ObjectId;
     ambassador_revenue: number;
     admin_revenue: number;
+    total: number;
 }
 
 export const OrderSchema = new Schema<OrderDocument>({

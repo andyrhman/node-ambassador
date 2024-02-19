@@ -4,7 +4,7 @@ import * as argon2 from 'argon2'
 import { fakerID_ID as faker } from "@faker-js/faker";
 import { User } from "../models/user.schema";
 
-mongoose.connect('mongodb://localhost/node_ambassador').then(async () => {
+mongoose.connect(`mongodb+srv://tataran:${process.env.MONGO_PASSWORD}@nodeadmin.yjvkzpx.mongodb.net/node_ambassador?retryWrites=true&w=majority`).then(async () => {
     const password = await argon2.hash("123123");
 
     for (let i = 0; i < 30; i++) {

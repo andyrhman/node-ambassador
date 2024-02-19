@@ -5,7 +5,7 @@ import { OrderDocument } from "./order.schema";
 export interface LinkDocument extends Document {
     _id: mongoose.Schema.Types.ObjectId;
     code: string;
-    user_id: mongoose.Schema.Types.ObjectId;
+    user_id: any;
     products: ProductDocument[];
     orders: OrderDocument[];
 }
