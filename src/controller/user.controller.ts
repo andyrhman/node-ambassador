@@ -5,13 +5,14 @@ import logger from "../config/logger";
 
 export const Ambassadors = async (req: Request, res: Response) => {
     try {
-        res.send(await myDataSource.getRepository(User).find({
+        const users = await myDataSource.getRepository(User).find({
             where: {
                 is_ambassador: true
             }
-        }))
+        });
+        res.send({ users });
     } catch (error) {
         logger.error(error);
-        return res.status(400).send({ message: "Invalid Request" })
+        return res.status(400).send({ message: "Invalid Request" });
     }
-}
+};

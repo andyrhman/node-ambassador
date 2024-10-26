@@ -6,7 +6,7 @@ import { Order } from "../entity/order.entity";
 
 seederSource.initialize().then(async () => {
     const client = createClient({
-        url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@redis-14459.c252.ap-southeast-1-1.ec2.cloud.redislabs.com:14459`
+        url: `redis://redis:6379`
     });
 
     await client.connect();

@@ -12,7 +12,7 @@ import { createClient } from 'redis';
 const app = express();
 
 export const client = createClient({
-    url: `redis://${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}@redis-14459.c252.ap-southeast-1-1.ec2.cloud.redislabs.com:14459`
+    url: 'redis://redis:6379'
 });
 
 app.use(express.json());
@@ -20,7 +20,7 @@ app.use(cookieParser());
 app.use(ValidationMiddleware);
 app.use(cors({
     credentials: true,
-    origin: [`${process.env.CORS_ORIGIN}`]
+    origin: ['http://localhost:3000', 'http://localhost:4000', 'http://localhost:5000']
 }));
 
 myDataSource.initialize().then(async () => {

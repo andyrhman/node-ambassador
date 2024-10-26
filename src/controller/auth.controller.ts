@@ -22,7 +22,7 @@ export const Register = async (req: Request, res: Response) => {
         }
 
         const user = await myDataSource.getRepository(User).save({
-            fullName: body.fullname,
+            fullName: body.fullName,
             username: body.username,
             email: body.email,
             password: await argon2.hash(body.password),

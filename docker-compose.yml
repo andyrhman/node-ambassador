@@ -9,7 +9,6 @@ services:
       - '.:/app'
     depends_on:
       - db
-      - cache
   db:
     image: postgres:15.3
     restart: always
@@ -19,7 +18,7 @@ services:
       - ./.pgdata:/var/lib/postgresql/data # Volume for persisting PostgreSQL data
     ports:
       - 54323:5432
-  cache:
-    image: redis:alpine
+  redis: # never rename this to anything, use redis
+    image: redis
     ports:
       - 6379:6379

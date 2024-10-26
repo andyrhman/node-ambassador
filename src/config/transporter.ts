@@ -9,7 +9,7 @@ const transporter = createTransport({
     //     user: process.env.GMAIL_EMAIL,
     //     pass: process.env.GMAIL_PASSWORD,
     // },
-    host: '0.0.0.0',
+    host: 'host.docker.internal',
     port: 1025
 });
 

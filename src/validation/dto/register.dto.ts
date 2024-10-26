@@ -4,7 +4,7 @@ import { IsEqualTo } from '../decorator/check-password.decorator';
 export class RegisterDto {
     @IsString({ message: 'Full name must be a string' })
     @IsNotEmpty()
-    fullname: string;
+    fullName: string;
 
     @IsString()
     @IsNotEmpty()
